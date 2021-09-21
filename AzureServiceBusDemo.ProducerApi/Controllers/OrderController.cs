@@ -40,14 +40,16 @@ namespace AzureServiceBusDemo.ProducerApi.Controllers
             {
                 Id = model.Id,
                 CreatedAt = DateTime.Now,
-                ProductName = model.ProductName
+                ProductName = model.ProductName,
             };
             await _azureService.CreateTopicIfNotExists(Constants.OrderTopic);
-            await _azureService.SendMessagesToTopic(Constants.OrderTopic, orderCreated);
+            await _azureService.CreateSubscriptionIfNotExists(Constants.OrderTopic, Constants.OrderCreatedSubName,"OrderCreated", "OrderCreatedOnly");
+
+            await _azureService.SendMessagesToTopic(Constants.OrderTopic, orderCreated,"OrderCreated");
         }
 
-        [HttpDelete("{id:int}")]
-        public async Task DeleteOrder(int id)
+        [HttpDelete("queue/{id:int}")]
+        public async Task DeleteQueue(int id)
         {
             OrderDeletedEvent orderDeleted = new()
             {
@@ -56,6 +58,20 @@ namespace AzureServiceBusDemo.ProducerApi.Controllers
             };
             await _azureService.CreateQueueIfNotExists(Constants.OrderDeletedQueueName);
             await _azureService.SendMessageToQueue(Constants.OrderDeletedQueueName, orderDeleted);
+        }
+
+        [HttpDelete("topic/{id:int}")]
+        public async Task DeleteTopic(int id)
+        {
+            OrderDeletedEvent orderDeleted = new()
+            {
+                Id = id,
+                CreatedAt = DateTime.Now
+            };
+            await _azureService.CreateTopicIfNotExists(Constants.OrderTopic);
+            await _azureService.CreateSubscriptionIfNotExists(Constants.OrderTopic, Constants.OrderDeletedSubName,"OrderDeleted","OrderDeletedOnly");
+
+            await _azureService.SendMessagesToTopic(Constants.OrderTopic, orderDeleted);
         }
     }
 }
