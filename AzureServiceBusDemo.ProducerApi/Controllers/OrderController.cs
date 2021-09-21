@@ -20,17 +20,42 @@ namespace AzureServiceBusDemo.ProducerApi.Controllers
         }
 
 
-        [HttpPost]
-        public async Task CreateOrder(OrderDto model)
+        [HttpPost("queue")]
+        public async Task CreateOrderToQueue(OrderDto model)
         {
-            
-            OrderCreatedEvent orderCreatedEvent = new OrderCreatedEvent
+            OrderCreatedEvent orderCreated = new()
             {
                 Id = model.Id,
                 CreatedAt = DateTime.Now,
                 ProductName = model.ProductName
             };
-            await _azureService.SendMessageToQueue(Constants.OrderCreatedQueueName, orderCreatedEvent);
+            await _azureService.CreateQueueIfNotExists(Constants.OrderCreatedQueueName);
+            await _azureService.SendMessageToQueue(Constants.OrderCreatedQueueName, orderCreated);
+        }
+
+        [HttpPost("topic")]
+        public async Task CreateOrderToTopic(OrderDto model)
+        {
+            OrderCreatedEvent orderCreated = new()
+            {
+                Id = model.Id,
+                CreatedAt = DateTime.Now,
+                ProductName = model.ProductName
+            };
+            await _azureService.CreateTopicIfNotExists(Constants.OrderTopic);
+            await _azureService.SendMessagesToTopic(Constants.OrderTopic, orderCreated);
+        }
+
+        [HttpDelete("{id:int}")]
+        public async Task DeleteOrder(int id)
+        {
+            OrderDeletedEvent orderDeleted = new()
+            {
+                Id = id,
+                CreatedAt = DateTime.Now
+            };
+            await _azureService.CreateQueueIfNotExists(Constants.OrderDeletedQueueName);
+            await _azureService.SendMessageToQueue(Constants.OrderDeletedQueueName, orderDeleted);
         }
     }
 }

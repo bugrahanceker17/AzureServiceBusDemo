@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AzureServiceBusDemo.Common;
 using AzureServiceBusDemo.ProducerApi.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus.Management;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -28,7 +30,7 @@ namespace AzureServiceBusDemo.ProducerApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<AzureService>();
-            
+            services.AddSingleton<ManagementClient>(i => new ManagementClient(Constants.ConnectionString));
             
             services.AddControllers();
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo { Title = "AzureServiceBusDemo.ProducerApi", Version = "v1" }); });
